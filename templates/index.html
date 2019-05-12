@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title> {% block title %} {% endblock %} </title>
+</head>
+<body>
+    <ul>
+        {% if user.is_authenticated %}
+            <li><a href="{% url 'myPage:base' user %}">MY PAGE</a></li>
+            <li><a href="{% url 'logout' %}">LOGOUT</a></li> 
+        {% else %}
+            <li><a href="{% url 'login' %}">LOGIN</a></li> 
+            <li><a href="{% url 'register' %}">REGISTER</a></li> 
+        {% endif %}
+    </ul>
+    {% block content %}
+    hello this is index.html!
+    {% endblock %}
+</body>
+</html>

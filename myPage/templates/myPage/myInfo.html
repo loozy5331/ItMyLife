@@ -1,0 +1,12 @@
+{% extends 'index.html' %}
+
+{% block title %}- MyInfo{% endblock %}
+
+{% block content %}
+    <form action="" enctype="multipart/form-data" method="post">
+        {% csrf_token %}
+        {{form.as_p}}
+        <input type="submit" value="저장">
+    </form>
+    <a href="{% url 'myPage:downloadDoc' user.username %}">이력서 양식 출력</a>
+{% endblock %}
