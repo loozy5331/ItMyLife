@@ -42,9 +42,9 @@ class MyQuestion(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=200, null=True, blank=True)
     contentNum = models.IntegerField(null=True, blank=True)
-    message = models.CharField(max_length=1000, null=True, blank=True)
+    message = models.CharField(max_length=1000, null=True)
     content = models.TextField(max_length=5000, null=True, blank=True)
-    commitCount = models.IntegerField(null=True, blank=True)
+    commitCount = models.IntegerField(null=True, blank=True, default=0)
     lastCommitDate = models.DateField(auto_now=True, null=True, blank=True)
 
     def __str__(self):

@@ -22,9 +22,11 @@ def base(request, userId):
     except Exception:
         user = User.objects.get(username="admin")
     myquestionList = list(map(str, user.myquestion_set.all()))
+    commitCountList = [str(question.commitCount) for question in user.myquestion_set.all()]
     excludeMyQuestionList = [str(question) for question in MyQuestion.objects.filter(user=adminUser) if str(question) not in myquestionList]
+    zipedQuestionList = zip(myquestionList, commitCountList)
     context = dict()
-    context['myquestionList'] = myquestionList
+    context['myquestionList'] = zipedQuestionList
     context['excludeMyQuestionList'] = excludeMyQuestionList
     return render(request, "myPage/base.html", context)
 
@@ -93,6 +95,11 @@ def questionInfo(request, userId, questionTitle):
         if questionForm.is_valid():
             newQuestionForm = questionForm.cleaned_data
             MyQuestion.objects.filter(user=user, title=questionTitle).update(**newQuestionForm)
+
+            myQuestion = MyQuestion.objects.get(user=user, title=questionTitle)
+            myQuestion.commitCount+=1
+            myQuestion.save()
+
             fileName = questionTitle + ".txt"
             makeContentFile(gitPath, fileName, request.POST['content'])
             gitControl = GitControl(gitPath)
@@ -124,8 +131,9 @@ def downloadDoc(request, userId):
 
     return response
 
-def saveQuestion(request, userId, questionTitle):
-    pass
+def gitLogs(request, userId, questionTitle, commitCount):
+    # 이건 내일 개발
+    return render(request, "myPage/main.html")
 
 
 

@@ -27,6 +27,5 @@ urlpatterns = [
     path("<str:userId>/myInfo/addQuestion", views.addQuestion, name="addQuestion"),
     path("<str:userId>/myInfo/deleteQuestion/<str:questionTitle>", views.deleteQuestion, name="deleteQuestion"),
     path("<str:userId>/myInfo/<str:questionTitle>", views.questionInfo, name="questionInfo"),
-    path("<str:userId>/questionSave/<str:questionTitle>", views.saveQuestion, name="saveQuestion"),
-    #path("<str:userId>/<int:questionId>/<int:commitCount>", views.gitLogs, name="gitLogs"),
+    path("<str:userId>/<str:questionTitle>/<int:commitCount>", views.gitLogs, name="gitLogs"),
 ]
