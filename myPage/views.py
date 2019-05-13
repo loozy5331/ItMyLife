@@ -81,13 +81,23 @@ def myInfo(request, userId):
         form = MyInfoForm(initial=tempInitDict)
     return render(request, 'myPage/myInfo.html', {'form':form})
 
+def makeContentFile(path, fileName, content):
+    with open(os.path.join(path, fileName), 'w', encoding='utf-8') as file:
+        file.write(content)
+
 def questionInfo(request, userId, questionTitle):
     user = User.objects.get(username=userId)
+    gitPath ='media/{username}/{questionTitle}/'.format(username=user.username, questionTitle=questionTitle)
     if request.method == 'POST':
         questionForm = MyQuestionForm(request.POST)
         if questionForm.is_valid():
             newQuestionForm = questionForm.cleaned_data
             MyQuestion.objects.filter(user=user, title=questionTitle).update(**newQuestionForm)
+            fileName = questionTitle + ".txt"
+            makeContentFile(gitPath, fileName, request.POST['content'])
+            gitControl = GitControl(gitPath)
+            gitControl.addGit()
+            gitControl.commitGit(request.POST['message'])
             return render(request, 'myPage/questionInfo.html', {'form':questionForm})
     else:
         try:
