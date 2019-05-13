@@ -7,6 +7,7 @@ from django.forms.models import model_to_dict
 from .models import MyInfo, MyQuestion, QuestionLog
 from .forms import MyInfoForm, MyQuestionForm
 from .utils.pythonToWord import makeCertification
+from .utils.gitControl import GitControl, GitLog
 
 import os
 import shutil
@@ -33,11 +34,22 @@ def addQuestion(request, userId):
     user = User.objects.get(username=userId)
     new_q = MyQuestion(user=user, title=questionTitle, contentNum=contentNum)
     new_q.save()
+
+    # git init
+    gitPath ='media/{username}/{questionTitle}/'.format(username=user.username, questionTitle=questionTitle)
+    gitControl = GitControl(gitPath)
+    gitControl.initGit()
+
     return HttpResponseRedirect(reverse('myPage:base', args=(userId, )))
 
 def deleteQuestion(request, userId, questionTitle):
     user = User.objects.get(username=userId)
     MyQuestion.objects.filter(user=user).filter(title=questionTitle).delete()
+
+    gitPath ='media/{username}/{questionTitle}/'.format(username=user.username, questionTitle=questionTitle)
+    if os.path.isdir(gitPath):
+        print("delete {}".format(gitPath))
+        shutil.rmtree(gitPath)
     return HttpResponseRedirect(reverse('myPage:base', args=(userId, )))
 
 def deleteOldImage(userName, imagePath):
@@ -84,6 +96,7 @@ def questionInfo(request, userId, questionTitle):
             myQuestionInfo = MyQuestion(user=user, title=questionTitle, commitCount=0)
             myQuestionInfo.save()
         questionForm = MyQuestionForm(initial=model_to_dict(myQuestionInfo))
+
     return render(request, 'myPage/questionInfo.html', {'form':questionForm})
 
 def downloadDoc(request, userId):
@@ -95,10 +108,10 @@ def downloadDoc(request, userId):
     for key, val in context.items():
         context[key] = str(val)
     document = makeCertification(**context)
-
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
     response['Content-Disposition'] = 'attachment; filename=' + context['filePath']
     document.save(response)
+
     return response
 
 def saveQuestion(request, userId, questionTitle):
