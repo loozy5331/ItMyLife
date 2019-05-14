@@ -100,7 +100,7 @@ def questionInfo(request, userId, questionTitle):
             myQuestion.commitCount+=1
             myQuestion.save()
 
-            fileName = questionTitle + ".txt"
+            fileName = "content.txt"
             makeContentFile(gitPath, fileName, request.POST['content'])
             gitControl = GitControl(gitPath)
             gitControl.addGit()
@@ -132,8 +132,20 @@ def downloadDoc(request, userId):
     return response
 
 def gitLogs(request, userId, questionTitle, commitCount):
-    # 이건 내일 개발
-    return render(request, "myPage/main.html")
+    user = User.objects.get(username=userId)
+    gitPath ='media/{username}/{questionTitle}/'.format(username=userId, questionTitle=questionTitle)
+    myQuestion = MyQuestion.objects.get(user=user, title=questionTitle)
+    gitLog = GitLog(gitPath)
+    gitLog.makeMessageList()
+    gitLog.displayChange()
+    dateList = gitLog.dateList
+    messageList = gitLog.messageList
+    recentContent = myQuestion.content
+    contentList = gitLog.contentList[1:]
+    return render(request, "myPage/log.html", {"dateList":dateList,
+                                                "messageList":messageList, 
+                                                "contentList":contentList, 
+                                                "recentContent":recentContent})
 
 
 

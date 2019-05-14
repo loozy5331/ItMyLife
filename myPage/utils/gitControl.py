@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import shutil
+from datetime import datetime
 
 class GitControl:
     """
@@ -40,21 +41,24 @@ class GitLog:
         diffContents(pivotNum, targetNum): pivotNum을 기준으로 targetNum의 내용과 어떻게 다른지 확인. 메시지는 targetNum의 것을 사용
 
     """
-    def __init__(self, gitPath, fileName):
+    def __init__(self, gitPath):
         """
             gitPath: git 명령을 실행할 경로
-            fileName: commit을 확인하고 싶은 파일의 이름
         """
         self.gitPath = gitPath
+        self.originPath = os.getcwd()
         sys.path.append(self.gitPath) # 명령어를 실행할 기준 경로 설정
-        self.fileName = fileName
+        self.dateList = list()
         self.messageList = list()
+        self.contentList = list()
 
     def makeMessageList(self):
         """
             현재까지 commit한 message들을 self.messageList에 저장
         """
+        os.chdir(self.gitPath)
         logs = os.popen("git log").readlines()
+        os.chdir(self.originPath)
         logs = [log.strip() for log in logs] # remove \n
 
         print("===========<message List>==============")
@@ -62,7 +66,11 @@ class GitLog:
             if(i == 4 or (i - 4) % 6 == 0):
                 self.messageList.append(line)
                 print("line {}: {}".format(i, line))
+            if(i == 2 or (i - 2) % 6 == 0):
+                self.dateList.append(datetime.strptime(line[5:].strip(), '%a %b %d %H:%M:%S %Y %z'))
         print("======================================\n")
+        print(self.dateList)
+        
 
     def diffContents(self, pivotNum, targetNum):
         """
@@ -73,9 +81,10 @@ class GitLog:
         if(targetNum >= len(self.messageList)):
             print("targetNum is out of range!")
             return
-        contents = os.popen("git diff --word-diff=plain HEAD~{targetNum} HEAD~{pivotNum} {fileName}".format(targetNum=targetNum, 
-                                                                                                            pivotNum=pivotNum, 
-                                                                                                            fileName=self.fileName))
+        os.chdir(self.gitPath)
+        contents = os.popen("git diff --word-diff=plain HEAD~{targetNum} HEAD~{pivotNum} content.txt".format(targetNum=targetNum, 
+                                                                                                            pivotNum=pivotNum))
+        os.chdir(self.originPath)                                                                                
         contents = [content.strip() for content in contents] # remove \n
         contents = self.removeOtherInfo(contents)
         print("commit number : {targetNum}".format(targetNum=targetNum))
@@ -98,6 +107,7 @@ class GitLog:
         if(len(content.strip()) == 0):
             return
         print(content)
+        return content
 
     def displayChange(self):
         """
@@ -105,13 +115,22 @@ class GitLog:
             기준은 현재 commit
         """
         for i, message in enumerate(self.messageList):
-            contents = os.popen("git diff --word-diff=plain HEAD~{i} HEAD {fileName}".format(i=i, fileName=self.fileName)).readlines()
+            if i == 0:
+                curr = 0
+            else:
+                curr = i-1
+            next = i
+            os.chdir(self.gitPath)
+            contents = os.popen("git diff --word-diff=plain HEAD~{next} HEAD~{curr} content.txt".format(next=next, curr=curr)).readlines()
+            os.chdir(self.originPath)
             contents = [content.strip() for content in contents]
             contents = self.removeOtherInfo(contents)
             print("commit number : {} ===============================================".format(i))
             print("message: {}".format(message))
-            for content in contents:
-                self.changeForAddSubPatter(content)
+            tempContents = list(map(self.changeForAddSubPatter, contents))
+            tempContents = [content for content in tempContents if content != ""]
+            print(tempContents)
+            self.contentList.append("<br>".join(tempContents))
             print("\n")
         
     def removeOtherInfo(self, contents):

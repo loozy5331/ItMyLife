@@ -1,0 +1,21 @@
+{% extends 'index.html' %}
+
+{% block title %} logs {% endblock %}
+
+{% block content %} 
+    <ul>
+        {% for message in messageList %}
+            <li><button>{{forloop.counter1}}. {{message}}</button></li>
+        {% endfor %}
+    </ul>
+    <p style="border: 1px solid black">
+        {{recentContent}}
+    </p>
+    {% for content in contentList %}
+        <p style="border: 1px solid black">
+            {% autoescape off %}{{content}}{% endautoescape %}
+            
+        </p>
+    {% endfor %}
+
+{% endblock %}
